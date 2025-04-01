@@ -1,22 +1,45 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: 编译todos程序
+name: Build TodoList
 
 on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
+ workflow_dispatch:
 
 jobs:
-  pyinstaller-build:
+  build:
     runs-on: windows-latest
+
     steps:
-      - name: Create Executable
-        uses: sayyid5416/pyinstaller@v1
-        with:
-          python_ver: '3.12'
-          spec: 'main.py'
-          upload_exe_with_name: 'todo'
-          options: --onefile, --name "todo", --windowed, 
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+        architecture: 'x64'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Create spec file
+      run: |
+        pyi-makespec --onefile --noconsole --icon=app.ico main.py
+
+    - name: Modify spec file
+      run: |
+        $content = Get-Content -Path main.spec
+        $content = $content -replace "hiddenimports=\[\]", "hiddenimports=['PIL', 'pystray._win32', 'PIL._tkinter_finder']"
+        $content | Set-Content -Path main.spec
+
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller main.spec
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: TodoList
+        path: |
+          dist/*.exe
+          todos.json
