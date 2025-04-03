@@ -1,8 +1,9 @@
 from notion_client import Client
 import requests
+import os
 
-NOTION_TOKEN = "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"
-DATABASE_ID = "1c8ecb65249380a9ba12e330b94f542c"
+NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
+DATABASE_ID = os.environ.get("DATABASE_ID")
 CHECK_BILI_API = "https://www.bilibili.com/video/"
 
 # 创建 Notion 客户端
@@ -57,6 +58,8 @@ def check_video(bv_id):
 
     # 检查标题是否为失效视频的标题
     return title.strip() == "视频去哪了呢？_哔哩哔哩_bilibili"
+
+
 def update_notion_page(page_id):
     """
     更新 Notion 页面，将 Expired 设置为 True
